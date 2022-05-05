@@ -1,6 +1,10 @@
 # Definite Integral Calculator
 > Author: Will Nigel C. De Jesus
+
+
 > Subject: Math 174
+
+
 > Language: Python
 
 A simple definite integral calculator that uses numerical methods to approximate a solution.
