@@ -14,6 +14,31 @@
 import numpy as np
 import sympy as sy
 
+def create_interval(lowerbound, upperbound, partition, equalStep):
+    # A function that splits the our given interval into n partitions.
+    # ============== Variables ==================
+    # lowerbound: Lower limit of the function
+    # upperbound: Upper limit of the function
+    # partition: Number of partitions the definite integral was divided into
+    # equalStep: A boolean that indicates if the list partition needs to be equal spaced
+    # ============== Return =====================
+    # Returns a list containing the correct partition based on the required method
+    if(equalStep):
+        return np.arange(lowerbound, upperbound, abs(upperbound - lowerbound) / partition)
+    else:
+        delta_x = (upperbound - lowerbound) /  partition
+        x_lst = [] * (partition + 1)
+        for i in range(partition + 1):
+            if(i == 0):
+                x_lst.append(lowerbound)
+                continue
+                
+            if((x_lst[i-1] + delta_x) > upperbound):
+                x_lst.append(upperbound)
+            else:
+                x_lst.append(x_lst[i-1] + delta_x)
+        return x_lst
+
 def definite_integral(function, lowerbound, upperbound):
     # A function that evaluates a definite integral from indicated range
     # Utilizes sympy library for parsing expressions
@@ -81,10 +106,12 @@ def reimann_sum_recur(function, lowerbound, upperbound, tolerance, isIncreasing,
     x = sy.symbols('x')
     if(isIncreasing):
         # If the function is Increasing, we take left lowerbound
-        for i in np.arange(lowerbound, upperbound, (upperbound - lowerbound) / partition):
+        x_lst = create_interval(lowerbound, upperbound, partition, True)
+        for i in x_lst:
             sum_ai += sy.parsing.sympy_parser.parse_expr(function).subs(x, i)
     else:
         # If the function is Decreasing, we take right upperbound
+        x_lst = create_interval(upperbound * -1, lowerbound * -1, partition, True)
         for i in np.arange(upperbound * -1, lowerbound * -1, (upperbound - lowerbound) / partition):
             sum_ai += sy.parsing.sympy_parser.parse_expr(function).subs(x, i * -1)
 
@@ -142,18 +169,7 @@ def trapezoidal_rule_recur(function, lowerbound, upperbound, tolerance, partitio
     delta_x = (upperbound - lowerbound) /  partition
     sum_ai = 0
     x = sy.symbols('x')
-    # Create Equal Inclusive Partition 
-    x_lst = [] * (partition + 1)
-    for i in range(partition + 1):
-        if(i == 0):
-            x_lst.append(lowerbound)
-            continue
-            
-        if((x_lst[i-1] + delta_x) > upperbound):
-            x_lst.append(upperbound)
-        else:
-            x_lst.append(x_lst[i-1] + delta_x)
-
+    x_lst = create_interval(lowerbound, upperbound, partition, False)
     k = 0
     while(k < len(x_lst) - 1):
         sum_ai += sy.parsing.sympy_parser.parse_expr(function).subs(x, x_lst[k]) + sy.parsing.sympy_parser.parse_expr(function).subs(x, x_lst[k+1])
