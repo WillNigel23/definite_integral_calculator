@@ -3,7 +3,7 @@
 # Subject: Math 174
 # Version: 1
 
-# A simple integral calculator that uses numerical methods.
+# A simple definite integral calculator that uses numerical methods to approximate a solution.
 # Program can check if the function is increasing or decreasing, but cannot account for having a 
 # function both increasing and decreasing at indicated range.
 # Implementation: Given is already coded to avoid parse error.
@@ -104,8 +104,74 @@ def reimann_sum_recur(function, lowerbound, upperbound, tolerance, isIncreasing,
 
 
 
-def trapezoidal_rule():
-    print("Trapezoidal Rule")
+def trapezoidal_rule_base(function, lowerbound, upperbound, tolerance):
+    # A function that uses trapezoidal rule method for calculating definite integrals.
+    # Base condition for the recursive function
+    # ============== Variables ==================
+    # function: String expression to be evaluated
+    # lowerbound: Lower limit of the function
+    # upperbound: Upper limit of the function
+    # tolerance: Arbitrary value for the margin of error
+    actual_value = definite_integral(function, lowerbound, upperbound)
+    partition = 1
+    delta_x = (upperbound - lowerbound) /  partition
+
+    # Solve for Current Estimate
+    x = sy.symbols('x')
+    sum_ai = sy.parsing.sympy_parser.parse_expr(function).subs(x, lowerbound) + sy.parsing.sympy_parser.parse_expr(function).subs(x, upperbound)
+    estimate_cur = (1/2) * delta_x * sum_ai
+    print("\nInitial Estimate = " + str(estimate_cur))
+
+    # Recursion
+    trapezoidal_rule_recur(function, lowerbound, upperbound, tolerance, partition * 2, estimate_cur, actual_value, 1)
+
+
+def trapezoidal_rule_recur(function, lowerbound, upperbound, tolerance, partition, estimate_prev, actual_value, iter):
+    # A function that uses trapezoidal rule method for calculating definite integrals.
+    # Recursive part of the function
+    # ============== Variables ==================
+    # function: String expression to be evaluated
+    # lowerbound: Lower limit of the function
+    # upperbound: Upper limit of the function
+    # tolerance: Arbitrary value for the margin of error
+    # partition: Number of partitions the definite integral was divided into
+    # estimate_prev: Previous estimate for the value of the integral
+    # actual_value: Actual value of the integral
+    # iter: Number of iterations
+
+    delta_x = (upperbound - lowerbound) /  partition
+    sum_ai = 0
+    x = sy.symbols('x')
+    # Create Equal Inclusive Partition 
+    x_lst = [] * (partition + 1)
+    for i in range(partition + 1):
+        if(i == 0):
+            x_lst.append(lowerbound)
+            continue
+            
+        if((x_lst[i-1] + delta_x) > upperbound):
+            x_lst.append(upperbound)
+        else:
+            x_lst.append(x_lst[i-1] + delta_x)
+
+    k = 0
+    while(k < len(x_lst) - 1):
+        sum_ai += sy.parsing.sympy_parser.parse_expr(function).subs(x, x_lst[k]) + sy.parsing.sympy_parser.parse_expr(function).subs(x, x_lst[k+1])
+        k += 1
+
+    estimate_cur = (1/2) * delta_x * sum_ai
+    print("Iteration #" + str(iter))
+    print("n: " + str(partition))
+    print("Current Estimate: " + str(estimate_cur))
+    print("Relative Error: " + str(abs(estimate_cur - estimate_prev)))
+    print("Absolute Error: " + str(abs(estimate_cur - actual_value)))
+
+    # Stopping Condition
+    if(abs(estimate_cur - estimate_prev) < tolerance):
+        print("End")
+    else:
+        # Recursion Part
+        trapezoidal_rule_recur(function, lowerbound, upperbound, tolerance, partition * 2, estimate_cur, actual_value, iter + 1)
 
 def simpsons_1_3_rule():
     print("Simpson's 1/3 Rule")
@@ -129,7 +195,9 @@ def given1():
             tolerance = float(input("Enter Tolerance: "))
             reimann_sum_base("1 / (4 + x**2)", 0, 12, tolerance) # Call Reimann Sum with Given number 1
         elif choice == 2:
-            trapezoidal_rule()
+            print("Trapezoidal Rule")
+            tolerance = float(input("Enter Tolerance: "))
+            trapezoidal_rule_base("1 / (4 + x**2)", 0, 12, tolerance) # Call Trapezoidal Rule with Given number 1
         elif choice == 3:
             simpsons_1_3_rule()
         elif choice == 4:
@@ -152,7 +220,9 @@ def given2():
             tolerance = float(input("Enter Tolerance: "))
             reimann_sum_base("ln(x)", 1, 5, tolerance) # Call Reimann Sum with Given number 1
         elif choice == 2:
-            trapezoidal_rule()
+            print("Trapezoidal Rule")
+            tolerance = float(input("Enter Tolerance: "))
+            trapezoidal_rule_base("ln(x)", 1, 5, tolerance) # Call Trapezoidal Rule with Given number 1
         elif choice == 3:
             simpsons_1_3_rule()
         elif choice == 4:
