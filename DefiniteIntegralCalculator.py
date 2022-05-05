@@ -11,19 +11,24 @@
 # numpy
 # sympy
 
+from xml.etree.ElementTree import XML
 import numpy as np
 import sympy as sy
 
-def create_interval(lowerbound, upperbound, partition, equalStep):
+def is_odd(num):
+    # A simple function that checks if a number is odd
+    return (num % 2) != 0
+
+def create_interval(lowerbound, upperbound, partition, exclusive):
     # A function that splits the our given interval into n partitions.
     # ============== Variables ==================
     # lowerbound: Lower limit of the function
     # upperbound: Upper limit of the function
     # partition: Number of partitions the definite integral was divided into
-    # equalStep: A boolean that indicates if the list partition needs to be equal spaced
+    # equalStep: A boolean that indicates if the list partition can exclude last number
     # ============== Return =====================
     # Returns a list containing the correct partition based on the required method
-    if(equalStep):
+    if(exclusive):
         return np.arange(lowerbound, upperbound, abs(upperbound - lowerbound) / partition)
     else:
         delta_x = (upperbound - lowerbound) /  partition
@@ -189,8 +194,71 @@ def trapezoidal_rule_recur(function, lowerbound, upperbound, tolerance, partitio
         # Recursion Part
         trapezoidal_rule_recur(function, lowerbound, upperbound, tolerance, partition * 2, estimate_cur, actual_value, iter + 1)
 
-def simpsons_1_3_rule():
-    print("Simpson's 1/3 Rule")
+def simpsons_1_3_rule(function, lowerbound, upperbound, tolerance):
+    # A function that uses simpson's 1/3 rule method for calculating definite integrals.
+    # Base condition for the recursive function
+    # ============== Variables ==================
+    # function: String expression to be evaluated
+    # lowerbound: Lower limit of the function
+    # upperbound: Upper limit of the function
+    # tolerance: Arbitrary value for the margin of error
+    actual_value = definite_integral(function, lowerbound, upperbound)
+    partition = 2 # Starting partition should be even
+    delta_x = (upperbound - lowerbound) /  partition
+
+    # Solve for Current Estimate
+    x = sy.symbols('x')
+    x_lst = create_interval(lowerbound, upperbound, partition, False)
+    sum_ai = 0
+    for i in range(len(x_lst)):
+        coef = 4 if is_odd(i) else 2
+        if(x_lst[i] == lowerbound or x_lst[i] == upperbound):
+            sum_ai += sy.parsing.sympy_parser.parse_expr(function).subs(x, x_lst[i])
+        else:
+            sum_ai += (coef * sy.parsing.sympy_parser.parse_expr(function).subs(x, x_lst[i]))
+
+    estimate_cur = (1/3) * delta_x * sum_ai
+    print("\nInitial Estimate = " + str(estimate_cur))
+
+    # Recursion
+    simpsons_1_3_rule_recur(function, lowerbound, upperbound, tolerance, partition * 2, estimate_cur, actual_value, 1)
+
+def simpsons_1_3_rule_recur(function, lowerbound, upperbound, tolerance, partition, estimate_prev, actual_value, iter):
+    # A function that uses simpson's 1/3 rule method for calculating definite integrals.
+    # Recursive part of the function
+    # ============== Variables ==================
+    # function: String expression to be evaluated
+    # lowerbound: Lower limit of the function
+    # upperbound: Upper limit of the function
+    # tolerance: Arbitrary value for the margin of error
+    # partition: Number of partitions the definite integral was divided into
+    # estimate_prev: Previous estimate for the value of the integral
+    # actual_value: Actual value of the integral
+    # iter: Number of iterations
+    delta_x = (upperbound - lowerbound) /  partition
+    x = sy.symbols('x')
+    x_lst = create_interval(lowerbound, upperbound, partition, False)
+    sum_ai = 0
+    for i in range(len(x_lst)):
+        coef = 4 if is_odd(i) else 2
+        if(x_lst[i] == lowerbound or x_lst[i] == upperbound):
+            sum_ai += sy.parsing.sympy_parser.parse_expr(function).subs(x, x_lst[i])
+        else:
+            sum_ai += (coef * sy.parsing.sympy_parser.parse_expr(function).subs(x, x_lst[i]))
+        
+    estimate_cur = (1/3) * delta_x * sum_ai
+    print("Iteration #" + str(iter))
+    print("n: " + str(partition))
+    print("Current Estimate: " + str(estimate_cur))
+    print("Relative Error: " + str(abs(estimate_cur - estimate_prev)))
+    print("Absolute Error: " + str(abs(estimate_cur - actual_value)))
+
+    # Stopping Condition
+    if(abs(estimate_cur - estimate_prev) < tolerance):
+        print("End")
+    else:
+        # Recursion Part
+        simpsons_1_3_rule_recur(function, lowerbound, upperbound, tolerance, partition * 2, estimate_cur, actual_value, iter + 1)
 
 def simpsons_3_8_rule():
     print("Simpson's 3/8 Rule")
@@ -215,7 +283,9 @@ def given1():
             tolerance = float(input("Enter Tolerance: "))
             trapezoidal_rule_base("1 / (4 + x**2)", 0, 12, tolerance) # Call Trapezoidal Rule with Given number 1
         elif choice == 3:
-            simpsons_1_3_rule()
+            print("Simpson's 1/3 Rule")
+            tolerance = float(input("Enter Tolerance: "))
+            simpsons_1_3_rule("1 / (4 + x**2)", 0, 12, tolerance) # Call Simpson's 1/3 Rule with Given number 1
         elif choice == 4:
             simpsons_3_8_rule()
     
@@ -234,13 +304,15 @@ def given2():
         if choice == 1:
             print("Reimann Sum")
             tolerance = float(input("Enter Tolerance: "))
-            reimann_sum_base("ln(x)", 1, 5, tolerance) # Call Reimann Sum with Given number 1
+            reimann_sum_base("ln(x)", 1, 5, tolerance) # Call Reimann Sum with Given number 2
         elif choice == 2:
             print("Trapezoidal Rule")
             tolerance = float(input("Enter Tolerance: "))
-            trapezoidal_rule_base("ln(x)", 1, 5, tolerance) # Call Trapezoidal Rule with Given number 1
+            trapezoidal_rule_base("ln(x)", 1, 5, tolerance) # Call Trapezoidal Rule with Given number 2
         elif choice == 3:
-            simpsons_1_3_rule()
+            print("Simpson's 1/3 Rule")
+            tolerance = float(input("Enter Tolerance: "))
+            simpsons_1_3_rule("ln(x)", 1, 5, tolerance) # Call Simpson's 1/3 Rule with Given number 2
         elif choice == 4:
             simpsons_3_8_rule()
 
