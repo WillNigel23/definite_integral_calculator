@@ -46,6 +46,7 @@ def create_interval(lowerbound, upperbound, partition, exclusive):
                 x_lst.append(upperbound)
             else:
                 x_lst.append(x_lst[i-1] + delta_x)
+
         return x_lst
 
 def definite_integral(function, lowerbound, upperbound):
@@ -279,7 +280,6 @@ def simpsons_3_8_rule(function, lowerbound, upperbound, tolerance):
     x = sy.symbols('x')
     x_lst = create_interval(lowerbound, upperbound, partition, False)
     sum_ai = 0
-    print(x_lst)
     for i in range(len(x_lst)):
         coef = 2 if is_multiple_3(i) else 3
         if(x_lst[i] == lowerbound or x_lst[i] == upperbound):
@@ -412,3 +412,4 @@ def menu():
 
 # Start of Program
 menu()
+
