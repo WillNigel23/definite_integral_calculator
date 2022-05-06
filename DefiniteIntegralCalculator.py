@@ -15,6 +15,10 @@ from xml.etree.ElementTree import XML
 import numpy as np
 import sympy as sy
 
+def is_multiple_3(num):
+    # A simple function that checks if a number is a multiple of 3
+    return (num % 3) == 0
+
 def is_odd(num):
     # A simple function that checks if a number is odd
     return (num % 2) != 0
@@ -260,8 +264,75 @@ def simpsons_1_3_rule_recur(function, lowerbound, upperbound, tolerance, partiti
         # Recursion Part
         simpsons_1_3_rule_recur(function, lowerbound, upperbound, tolerance, partition * 2, estimate_cur, actual_value, iter + 1)
 
-def simpsons_3_8_rule():
-    print("Simpson's 3/8 Rule")
+def simpsons_3_8_rule(function, lowerbound, upperbound, tolerance):
+    # A function that uses simpson's 3/8 rule method for calculating definite integrals.
+    # Base condition for the recursive function
+    # ============== Variables ==================
+    # function: String expression to be evaluated
+    # lowerbound: Lower limit of the function
+    # upperbound: Upper limit of the function
+    # tolerance: Arbitrary value for the margin of error
+    actual_value = definite_integral(function, lowerbound, upperbound)
+    partition = 3 # Starting partition should be multiple of 3
+    delta_x = (upperbound - lowerbound) /  partition
+    # Solve for Current Estimate
+    x = sy.symbols('x')
+    x_lst = create_interval(lowerbound, upperbound, partition, False)
+    sum_ai = 0
+    print(x_lst)
+    for i in range(len(x_lst)):
+        coef = 2 if is_multiple_3(i) else 3
+        if(x_lst[i] == lowerbound or x_lst[i] == upperbound):
+            sum_ai += sy.parsing.sympy_parser.parse_expr(function).subs(x, x_lst[i])
+        else:
+            sum_ai += (coef * sy.parsing.sympy_parser.parse_expr(function).subs(x, x_lst[i]))
+
+    print(function)
+    estimate_cur = (3/8) * delta_x * sum_ai
+    print("\nInitial Estimate = " + str(estimate_cur))
+
+    # Recursion
+    simpsons_3_8_rule_recur(function, lowerbound, upperbound, tolerance, partition * 2, estimate_cur, actual_value, 1)
+
+def simpsons_3_8_rule_recur(function, lowerbound, upperbound, tolerance, partition, estimate_prev, actual_value, iter):
+    # A function that uses simpson's 3/8 rule method for calculating definite integrals.
+    # Recursive part of the function
+    # ============== Variables ==================
+    # function: String expression to be evaluated
+    # lowerbound: Lower limit of the function
+    # upperbound: Upper limit of the function
+    # tolerance: Arbitrary value for the margin of error
+    # partition: Number of partitions the definite integral was divided into
+    # estimate_prev: Previous estimate for the value of the integral
+    # actual_value: Actual value of the integral
+    # iter: Number of iterations
+    delta_x = (upperbound - lowerbound) /  partition
+    # Solve for Current Estimate
+    x = sy.symbols('x')
+    x_lst = create_interval(lowerbound, upperbound, partition, False)
+    sum_ai = 0
+    for i in range(len(x_lst)):
+        coef = 2 if is_multiple_3(i) else 3
+        if(x_lst[i] == lowerbound or x_lst[i] == upperbound):
+            
+            sum_ai += sy.parsing.sympy_parser.parse_expr(function).subs(x, x_lst[i])
+        else:
+            sum_ai += (coef * sy.parsing.sympy_parser.parse_expr(function).subs(x, x_lst[i]))
+
+    estimate_cur = (3/8) * delta_x * sum_ai
+
+    print("Iteration #" + str(iter))
+    print("n: " + str(partition))
+    print("Current Estimate: " + str(estimate_cur))
+    print("Relative Error: " + str(abs(estimate_cur - estimate_prev)))
+    print("Absolute Error: " + str(abs(estimate_cur - actual_value)))
+
+    # Stopping Condition
+    if(abs(estimate_cur - estimate_prev) < tolerance):
+        print("End")
+    else:
+        # Recursion Part
+        simpsons_3_8_rule_recur(function, lowerbound, upperbound, tolerance, partition * 2, estimate_cur, actual_value, iter + 1)
 
 def given1():
     # A simple interface for picking methods of solving the first given function.
@@ -287,7 +358,9 @@ def given1():
             tolerance = float(input("Enter Tolerance: "))
             simpsons_1_3_rule("1 / (4 + x**2)", 0, 12, tolerance) # Call Simpson's 1/3 Rule with Given number 1
         elif choice == 4:
-            simpsons_3_8_rule()
+            print("Simpson's 3/8 Rule")
+            tolerance = float(input("Enter Tolerance: "))
+            simpsons_3_8_rule("1 / (4 + x**2)", 0, 12, tolerance) # Call Simpson's 3/8 Rule with Given number 1
     
 
 def given2():
@@ -314,7 +387,9 @@ def given2():
             tolerance = float(input("Enter Tolerance: "))
             simpsons_1_3_rule("ln(x)", 1, 5, tolerance) # Call Simpson's 1/3 Rule with Given number 2
         elif choice == 4:
-            simpsons_3_8_rule()
+            print("Simpson's 3/8 Rule")
+            tolerance = float(input("Enter Tolerance: "))
+            simpsons_3_8_rule("ln(x)", 1, 5, tolerance) # Call Simpson's 3/8 Rule with Given number 2
 
 
 def menu():
@@ -336,5 +411,4 @@ def menu():
             quit()
 
 # Start of Program
-#print(sy.N('-4 + 5*log(5)'))
 menu()
